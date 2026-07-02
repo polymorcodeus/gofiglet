@@ -1,12 +1,12 @@
 # gofiglet
 
-[![Go Version](https://img.shields.io/github/go-mod/go-version/polymorcodeus/gofiglet)](https://go.dev/) [![License](https://img.shields.io/github/license/polymorcodeus/gofiglet)](./LICENSE) [![Build Status](https://img.shields.io/github/actions/workflow/status/polymorcodeus/gofiglet/ci.yml?branch=main)](https://github.com/polymorcodeus/gofiglet/actions)[![Go Report Card](https://goreportcard.com/badge/github.com/polymorcodeus/gofiglet)](https://goreportcard.com/report/github.com/polymorcodeus/gofiglet)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/polymorcodeus/gofiglet)](https://go.dev/) [![License](https://img.shields.io/github/license/polymorcodeus/gofiglet)](./LICENSE) [![Build Status](https://img.shields.io/github/actions/workflow/status/polymorcodeus/gofiglet/ci.yml?branch=main)](https://github.com/polymorcodeus/gofiglet/actions)
 
-`gofiglet` is a pure Go library for rendering ASCII art text from [figlet](http://www.figlet.org/) (`.flf`) fonts. It
+`gofiglet` is a pure Go library for rendering ASCII art fonts (`.flf`) from [figlet](http://www.figlet.org/). It
 supports ANSI colors, 24-bit true color, and per-character coloring, with a set of fonts bundled and embedded directly
 into the package.
 
-It's a reimagining of [mbndr/figlet4go](https://github.com/mbndr/figlet4go) with updated conventions, error handling, and unlike it's predecessor, there is no CLI. I've updated it primarily to display my CLI commands as a figlet banner, so those features have been prioritized.
+It's a reimagining of [mbndr/figlet4go](https://github.com/mbndr/figlet4go) with updated conventions, error handling, and unlike it's predecessor, there is no CLI. I've updated it primarily to display my [CLI commands](#screenshot) as a figlet banner, so those features have been prioritized.
 
 ## Features
 
@@ -135,6 +135,10 @@ func main() {
 | `WithFont(name string)` | Selects a builtin or already-loaded font by name. |
 | `WithLocalFont(name, path string)` | Sets the font name *and* a directory to load additional fonts from. |
 | `WithZeroPadding()` | Disables the default leading newline (`TopPadding = false`). |
+
+#### Screenshot
+
+![Banner Example](images/Banner.png)
 
 ## Colors
 
