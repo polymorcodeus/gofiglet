@@ -22,7 +22,7 @@ filesystem setup
 ## Installation
 
 ```bash
-go get gitlab.com/polymorcodeus/gofiglet
+go get github.com/polymorcodeus/gofiglet
 ```
 
 ## Quick Start
@@ -37,7 +37,7 @@ package main
 import (
   "fmt"
 
-  "gitlab.com/polymorcodeus/gofiglet"
+  "github.com/polymorcodeus/gofiglet"
 )
 
 func main() {
@@ -104,7 +104,7 @@ fmt.Println(out)
 ```go
 package main
 
-import "gitlab.com/polymorcodeus/gofiglet"
+import "github.com/polymorcodeus/gofiglet"
 
 func main() {
   b, err := gofiglet.NewCmdBanner(
