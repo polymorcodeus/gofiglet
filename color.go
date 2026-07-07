@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"image/color"
 	"regexp"
 	"strings"
 )
@@ -12,44 +13,43 @@ import (
 // sequences in this file.
 const escape = "\x1b"
 
-// Standard 16-color ANSI terminal colors (normal intensity).
+// Standard 16-color ANSI terminal colors (normal intensity) represented
+// as standard image/color RGBA values.
 var (
-	ColorBlack     AnsiColor = AnsiColor{30}
-	ColorRed       AnsiColor = AnsiColor{31}
-	ColorGreen     AnsiColor = AnsiColor{32}
-	ColorYellow    AnsiColor = AnsiColor{33}
-	ColorBlue      AnsiColor = AnsiColor{34}
-	ColorMagenta   AnsiColor = AnsiColor{35}
-	ColorCyan      AnsiColor = AnsiColor{36}
-	ColorWhite     AnsiColor = AnsiColor{37}
-	ColorHiBlack   AnsiColor = AnsiColor{90}
-	ColorHiRed     AnsiColor = AnsiColor{91}
-	ColorHiGreen   AnsiColor = AnsiColor{92}
-	ColorHiYellow  AnsiColor = AnsiColor{93}
-	ColorHiBlue    AnsiColor = AnsiColor{94}
-	ColorHiMagenta AnsiColor = AnsiColor{95}
-	ColorHiCyan    AnsiColor = AnsiColor{96}
-	ColorHiWhite   AnsiColor = AnsiColor{97}
+	ColorBlack     = color.RGBA{0, 0, 0, 255}
+	ColorRed       = color.RGBA{170, 0, 0, 255}
+	ColorGreen     = color.RGBA{0, 170, 0, 255}
+	ColorYellow    = color.RGBA{170, 85, 0, 255}
+	ColorBlue      = color.RGBA{0, 0, 170, 255}
+	ColorMagenta   = color.RGBA{170, 0, 170, 255}
+	ColorCyan      = color.RGBA{0, 170, 170, 255}
+	ColorWhite     = color.RGBA{170, 170, 170, 255}
+	ColorHiBlack   = color.RGBA{85, 85, 85, 255}
+	ColorHiRed     = color.RGBA{255, 85, 85, 255}
+	ColorHiGreen   = color.RGBA{85, 255, 85, 255}
+	ColorHiYellow  = color.RGBA{255, 255, 85, 255}
+	ColorHiBlue    = color.RGBA{85, 85, 255, 255}
+	ColorHiMagenta = color.RGBA{255, 85, 255, 255}
+	ColorHiCyan    = color.RGBA{85, 255, 255, 255}
+	ColorHiWhite   = color.RGBA{255, 255, 255, 255}
 )
 
 // Preset 24-bit TrueColor values used as defaults elsewhere in the
 // package (e.g. Colors["default"], NewCmdBanner's default palette).
 var (
-	TrueColorPink206    TrueColor = TrueColor{r: 255, g: 95, b: 175}
-	TrueColorYellowNeon TrueColor = TrueColor{r: 207, g: 255, b: 4}
-	TrueColorGold       TrueColor = TrueColor{r: 255, g: 215, b: 64}
+	TrueColorPink206    = color.RGBA{255, 95, 175, 255}
+	TrueColorYellowNeon = color.RGBA{207, 255, 4, 255}
+	TrueColorGold       = color.RGBA{255, 215, 64, 255}
 )
 
-// ColorNone is the no-op Color; using it renders text without any ANSI
+// ColorNone is the no-op color; using it renders text without any ANSI
 // color escape sequences.
-var (
-	ColorNone NoColor = NoColor{}
-)
+var ColorNone color.Color = nil
 
-// Colors maps human-friendly color names to Color values, used by
-// ResolveColor for named lookups. Named entries mirror the ANSI/
-// TrueColor variables declared above.
-var Colors = map[string]Color{
+// Colors maps human-friendly color names to color.Color values, used by
+// ResolveColor for named lookups. Named entries mirror the variables
+// declared above.
+var Colors = map[string]color.Color{
 	"default": TrueColorPink206,
 	"none":    ColorNone,
 	// ANSI
@@ -76,83 +76,83 @@ var Colors = map[string]Color{
 	"gold":       TrueColorGold,
 }
 
-// Color wraps ANSI escape sequences for terminal coloring.
-type Color interface {
-	GetPrefix() string
-	GetSuffix() string
-	GetColorCode() string
-}
-
-// AnsiColor is a standard 16-color ANSI terminal color.
-type AnsiColor struct {
-	code int
+// ansiColorCodes maps the predefined RGBA colors to their legacy ANSI
+// escape codes for terminals that do not support 24-bit true color.
+var ansiColorCodes = map[color.RGBA]int{
+	{0, 0, 0, 255}:       30,
+	{170, 0, 0, 255}:     31,
+	{0, 170, 0, 255}:     32,
+	{170, 85, 0, 255}:    33,
+	{0, 0, 170, 255}:     34,
+	{170, 0, 170, 255}:   35,
+	{0, 170, 170, 255}:   36,
+	{170, 170, 170, 255}: 37,
+	{85, 85, 85, 255}:    90,
+	{255, 85, 85, 255}:   91,
+	{85, 255, 85, 255}:   92,
+	{255, 255, 85, 255}:  93,
+	{85, 85, 255, 255}:   94,
+	{255, 85, 255, 255}:  95,
+	{85, 255, 255, 255}:  96,
+	{255, 255, 255, 255}: 97,
 }
 
 // GetPrefix returns the ANSI escape sequence that switches the terminal
-// to this color.
-func (ac AnsiColor) GetPrefix() string {
-	return fmt.Sprintf("%v[0;%dm", escape, ac.code)
+// to the given color. If c is nil, it returns an empty string.
+func GetPrefix(c color.Color) string {
+	if c == nil {
+		return ""
+	}
+	if code, ok := ansiCodeFor(c); ok {
+		return fmt.Sprintf("%v[0;%dm", escape, code)
+	}
+	r, g, b, _ := c.RGBA()
+	return fmt.Sprintf("%v[38;2;%d;%d;%dm", escape, uint8(r>>8), uint8(g>>8), uint8(b>>8))
 }
 
 // GetColorCode returns the raw ANSI color code as a string, without any
-// escape sequence wrapping.
-func (ac AnsiColor) GetColorCode() string {
-	return fmt.Sprintf("%d", ac.code)
+// escape sequence wrapping. If c is nil, it returns an empty string.
+func GetColorCode(c color.Color) string {
+	if c == nil {
+		return ""
+	}
+	if code, ok := ansiCodeFor(c); ok {
+		return fmt.Sprintf("%d", code)
+	}
+	r, g, b, _ := c.RGBA()
+	return fmt.Sprintf("38;2;%d;%d;%d", uint8(r>>8), uint8(g>>8), uint8(b>>8))
 }
 
 // GetSuffix returns the ANSI escape sequence that resets terminal
-// formatting back to default.
-func (ac AnsiColor) GetSuffix() string {
+// formatting back to default. If c is nil, it returns an empty string.
+func GetSuffix(c color.Color) string {
+	if c == nil {
+		return ""
+	}
 	return fmt.Sprintf("%v[0m", escape)
 }
 
-// TrueColor is a 24-bit RGB terminal color.
-type TrueColor struct {
-	r int
-	g int
-	b int
+// ansiCodeFor looks up the legacy ANSI color code for a predefined
+// palette color. If the color is not in the predefined palette, it
+// returns ok == false so the caller can fall back to 24-bit true color.
+func ansiCodeFor(c color.Color) (int, bool) {
+	r, g, b, a := c.RGBA()
+	rgba := color.RGBA{uint8(r >> 8), uint8(g >> 8), uint8(b >> 8), uint8(a >> 8)}
+	code, ok := ansiColorCodes[rgba]
+	return code, ok
 }
 
-// GetPrefix returns the ANSI 24-bit escape sequence that switches the
-// terminal to this RGB color.
-func (tc TrueColor) GetPrefix() string {
-	return fmt.Sprintf("%v[38;2;%d;%d;%dm", escape, tc.r, tc.g, tc.b)
-}
-
-// GetColorCode returns the raw ANSI 24-bit color code as a string,
-// without any escape sequence wrapping.
-func (tc TrueColor) GetColorCode() string {
-	return fmt.Sprintf("38;2;%d;%d;%d", tc.r, tc.g, tc.b)
-}
-
-// GetSuffix returns the ANSI escape sequence that resets terminal
-// formatting back to default.
-func (tc TrueColor) GetSuffix() string {
-	return fmt.Sprintf("%v[0m", escape)
-}
-
-// NoColor is a no-op Color that produces no escape sequences.
-type NoColor struct{}
-
-// GetPrefix returns an empty string; NoColor applies no formatting.
-func (n NoColor) GetPrefix() string { return "" }
-
-// GetColorCode returns an empty string; NoColor has no underlying code.
-func (n NoColor) GetColorCode() string { return "" }
-
-// GetSuffix returns an empty string; NoColor applies no formatting.
-func (n NoColor) GetSuffix() string { return "" }
-
-// ResolveColor returns a Color by named lookup or hex string (#RRGGBB).
-// Falls back to TrueColorPink206 if the input is unrecognized.
-func ResolveColor(c string) Color {
+// ResolveColor returns a color.Color by named lookup or hex string
+// (#RRGGBB). Falls back to TrueColorPink206 if the input is
+// unrecognized.
+func ResolveColor(c string) color.Color {
 	var hex6 = regexp.MustCompile(`^#?[0-9a-fA-F]{6}$`)
 
 	if lookup, ok := Colors[c]; ok {
 		return lookup
 	}
 	if hex6.MatchString(c) {
-		if newHexColor, err := NewTrueColorFromHexString(c); err == nil {
+		if newHexColor, err := NewColorFromHexString(c); err == nil {
 			return newHexColor
 		}
 	}
@@ -171,16 +171,12 @@ func hexToRGB(c string) ([]byte, error) {
 	return rgb, nil
 }
 
-// NewTrueColorFromHexString returns a TrueColor parsed from a hex string.
-func NewTrueColorFromHexString(c string) (*TrueColor, error) {
+// NewColorFromHexString returns a color.Color parsed from a hex string.
+func NewColorFromHexString(c string) (color.Color, error) {
 	rgb, err := hexToRGB(c)
 	if err != nil {
 		return nil, err
 	}
 
-	return &TrueColor{
-		r: int(rgb[0]),
-		g: int(rgb[1]),
-		b: int(rgb[2]),
-	}, nil
+	return color.RGBA{rgb[0], rgb[1], rgb[2], 255}, nil
 }
