@@ -1,6 +1,9 @@
 package gofiglet
 
-import "strings"
+import (
+	"image/color"
+	"strings"
+)
 
 // RenderOptions configures a single ASCIIRender.RenderOpts call: which
 // font to render with, and optionally a per-character color cycle.
@@ -11,7 +14,7 @@ type RenderOptions struct {
 	// FontColor, if non-empty, is applied cyclically across the
 	// characters of the rendered string (character i gets
 	// FontColor[i % len(FontColor)]). If empty, no color is applied.
-	FontColor []Color
+	FontColor []color.Color
 }
 
 // NewRenderOptions creates a new RenderOptions with FontName set to

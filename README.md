@@ -61,7 +61,7 @@ ascii := gofiglet.NewAsciiRender()
 
 opts := gofiglet.NewRenderOptions()
 opts.FontName = "smallsmursh"
-opts.FontColor = []gofiglet.Color{
+opts.FontColor = []color.Color{
   gofiglet.ColorCyan,
   gofiglet.ResolveColor("#ff5fAF") ,
 }

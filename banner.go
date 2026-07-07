@@ -5,6 +5,7 @@ package gofiglet
 
 import (
 	"fmt"
+	"image/color"
 	"os"
 	"strings"
 )
@@ -19,7 +20,7 @@ type Banner struct {
 	// Colors holds one color per Title segment, applied cyclically by
 	// index (segment i gets Colors[i % len(Colors)]). NewCmdBanner
 	// requires len(Colors) == len(Title).
-	Colors []Color
+	Colors []color.Color
 	// FontName is the figlet font to render with, by name.
 	FontName string
 	// FontPath, if set, is an on-disk directory to load additional fonts
@@ -36,7 +37,7 @@ type BannerOptions func(b *Banner)
 // WithColors sets the color palette for each Title segment.
 func WithColors(colors ...string) BannerOptions {
 	return func(b *Banner) {
-		b.Colors = make([]Color, len(colors))
+		b.Colors = make([]color.Color, len(colors))
 		for i, c := range colors {
 			b.Colors[i] = ResolveColor(c)
 		}
@@ -71,7 +72,7 @@ func WithZeroPadding() BannerOptions {
 func NewCmdBanner(title []string, options ...BannerOptions) (*Banner, error) {
 	b := &Banner{
 		Title:      title,
-		Colors:     []Color{ColorCyan, TrueColorPink206},
+		Colors:     []color.Color{ColorCyan, TrueColorPink206},
 		FontName:   "smallsmursh",
 		TopPadding: true,
 	}
@@ -111,7 +112,7 @@ func CmdBanner(b *Banner) (string, error) {
 
 	bannerTitle := strings.Join(b.Title, "")
 
-	figletColors := make([]Color, 0, len(bannerTitle))
+	figletColors := make([]color.Color, 0, len(bannerTitle))
 	for i, entry := range b.Title {
 		color := b.Colors[i%len(b.Colors)]
 		for range entry {

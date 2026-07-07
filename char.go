@@ -2,6 +2,7 @@ package gofiglet
 
 import (
 	"errors"
+	"image/color"
 )
 
 // asciiChar represents a single rendered ASCII-art character: the set of
@@ -9,7 +10,7 @@ import (
 // the line is emitted.
 type asciiChar struct {
 	lines []string
-	color Color
+	color color.Color
 }
 
 // newASCIIChar builds an asciiChar for char using font's glyph data.
@@ -36,8 +37,8 @@ func (char *asciiChar) GetLine(index int) string {
 	line := char.lines[index]
 
 	if char.color != nil {
-		prefix = char.color.GetPrefix()
-		suffix = char.color.GetSuffix()
+		prefix = GetPrefix(char.color)
+		suffix = GetSuffix(char.color)
 	}
 
 	return prefix + line + suffix
