@@ -35,12 +35,9 @@ type Banner struct {
 type BannerOptions func(b *Banner)
 
 // WithColors sets the color palette for each Title segment.
-func WithColors(colors ...string) BannerOptions {
+func WithColors(colors []color.Color) BannerOptions {
 	return func(b *Banner) {
-		b.Colors = make([]color.Color, len(colors))
-		for i, c := range colors {
-			b.Colors[i] = ResolveColor(c)
-		}
+		b.Colors = colors
 	}
 }
 
