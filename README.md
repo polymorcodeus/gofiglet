@@ -1,3 +1,9 @@
+<p align="center">
+  <source media="(prefers-color-scheme: dark)" srcset="images/gofiglet-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="images/gofiglet-light.png">
+  <img alt="Project Logo" src="images/gofiglet-dark.png" width="128">
+</p>
+
 # gofiglet
 
 [![Go Version](https://img.shields.io/github/go-mod/go-version/polymorcodeus/gofiglet)](https://go.dev/) [![License](https://img.shields.io/github/license/polymorcodeus/gofiglet)](./LICENSE) [![Build Status](https://img.shields.io/github/actions/workflow/status/polymorcodeus/gofiglet/ci.yml?branch=main)](https://github.com/polymorcodeus/gofiglet/actions)
