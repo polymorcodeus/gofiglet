@@ -26,9 +26,12 @@ type Banner struct {
 	// FontPath, if set, is an on-disk directory to load additional fonts
 	// from (in addition to the embedded builtin fonts) before rendering.
 	FontPath string
-	// TopPadding, if true, adds a single leading newline before the
+	// TopPadding is the number of leading newlines to add before the
 	// rendered output. It does not affect kerning or layout.
-	TopPadding bool
+	TopPadding int
+	// BottomPadding is the number of trailing newlines to add after the
+	// rendered output.
+	BottomPadding int
 }
 
 // BannerOptions configures a Banner via the functional options pattern.
@@ -56,11 +59,19 @@ func WithLocalFont(f string, p string) BannerOptions {
 	}
 }
 
-// WithZeroPadding disables the leading newline added by default when TopPadding is true.
-func WithZeroPadding() BannerOptions {
+// WithPadding sets the number of newlines to add before (top) and after
+// (bottom) the rendered output. Pass 0 to disable padding on either side.
+func WithPadding(top, bottom int) BannerOptions {
 	return func(b *Banner) {
-		b.TopPadding = false
+		b.TopPadding = top
+		b.BottomPadding = bottom
 	}
+}
+
+// WithZeroPadding is a convenience wrapper around WithPadding(0, 0) that
+// disables both top and bottom padding.
+func WithZeroPadding() BannerOptions {
+	return WithPadding(0, 0)
 }
 
 // NewCmdBanner creates a Banner with sensible defaults for CLI tool banners.
@@ -71,7 +82,7 @@ func NewCmdBanner(title []string, options ...BannerOptions) (*Banner, error) {
 		Title:      title,
 		Colors:     []color.Color{ColorCyan, TrueColorPink206},
 		FontName:   "smallsmursh",
-		TopPadding: true,
+		TopPadding: 1,
 	}
 	for _, o := range options {
 		o(b)
@@ -119,7 +130,7 @@ func CmdBanner(b *Banner) (string, error) {
 	figletOptions.FontColor = figletColors
 
 	var renderedString strings.Builder
-	if b.TopPadding {
+	for i := 0; i < b.TopPadding; i++ {
 		renderedString.WriteByte('\n')
 	}
 
@@ -128,6 +139,10 @@ func CmdBanner(b *Banner) (string, error) {
 		return "", err
 	}
 	renderedString.WriteString(asciiString)
+
+	for i := 0; i < b.BottomPadding; i++ {
+		renderedString.WriteByte('\n')
+	}
 
 	return renderedString.String(), nil
 }

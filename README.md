@@ -130,7 +130,7 @@ func main() {
 
 - `Colors` must have the same number of entries as `Title` — `NewCmdBanner` returns an error otherwise.
 - `Title` segments are concatenated with no separator, so include spacing in the segments themselves if you want it.
-- `TopPadding` defaults to `true`, which adds a single leading newline before the rendered output (use `WithZeroPadding()` to disable this).
+- `TopPadding` defaults to `1`, which adds a single leading newline before the rendered output (use `WithPadding(0, 0)` to disable this).
 - `CmdBanner` and `PrintCmdBanner` both return an error if `FontPath` fails to load or rendering fails (e.g. `FontName` can't be found).
 
 #### Banner functional options
@@ -140,7 +140,8 @@ func main() {
 | `WithColors(colors ...string)` | Sets the color palette, one per `Title` segment. Each string is resolved with `ResolveColor`. |
 | `WithFont(name string)` | Selects a builtin or already-loaded font by name. |
 | `WithLocalFont(name, path string)` | Sets the font name *and* a directory to load additional fonts from. |
-| `WithZeroPadding()` | Disables the default leading newline (`TopPadding = false`). |
+| `WithPadding(top, bottom int)` | Sets the number of newlines before (`top`) and after (`bottom`) the rendered output. |
+| `WithZeroPadding()` | Convenience wrapper for `WithPadding(0, 0)` to disable both top and bottom padding. |
 
 #### Screenshot
 
